@@ -1,0 +1,46 @@
+									Project 4: Text Compression
+																		Jeremy Sommers
+Sampletxt
+The original text has 110 characters.
+The average length of a code is 2.24 bits.
+The text is encoded in 246 bits.
+The savings is 634 bits.
+The compressed text is encoded in 32 characters.
+The savings is 78 characters.
+Decompressing yields 246 bits.
+The recovered text has 110 characters.
+
+All tests passed...
+alice-in-wonderland.txt
+The original text has 163810 characters.
+The average length of a code is 4.63 bits.
+The text is encoded in 758629 bits.
+The savings is 551851 bits.
+The compressed text is encoded in 94830 characters.
+The savings is 68980 characters.
+Decompressing yields 758629 bits.
+The recovered text has 163810 characters.
+
+All tests passed...
+moby-dick.txt
+The original text has 1232922 characters.
+The average length of a code is 4.53 bits.
+The text is encoded in 5589348 bits.
+The savings is 4274028 bits.
+The compressed text is encoded in 698670 characters.
+The savings is 534252 characters.
+Decompressing yields 5589348 bits.
+The recovered text has 1232922 characters.
+
+All tests passed...
+Europe.txt
+The original text has 606360 characters.
+The average length of a code is 4.48 bits.
+The text is encoded in 2715237 bits.
+The savings is 2135643 bits.
+The compressed text is encoded in 339406 characters.
+The savings is 266954 characters.
+Decompressing yields 2715237 bits.
+The recovered text has 606360 characters.
+
+All tests passed...
