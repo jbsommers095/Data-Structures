@@ -1,0 +1,395 @@
+package p1;
+
+import java.awt.Color;
+import java.util.*;
+import java.util.Random;
+
+/**
+ * @author Jeremy Sommers
+ * 
+ * A ColorTable represents a dictionary of frequency counts, keyed on Color.
+ * It is a simplification of Map<Color, Integer>. The size of the key space
+ * can be reduced by limiting each Color to a certain number of bits per channel.
+ */
+
+/**
+ * TODO
+ * 
+ * Implement this class, including whatever data members you need and all of the
+ * public methods below. You may create any number of private methods if you find
+ * them to be helpful. Replace all TODO comments with appropriate javadoc style 
+ * comments. Be sure to document all data fields and helper methods you define.
+ */
+
+public class ColorTable {
+  /**
+   * Counts the number of collisions during an operation.
+   */
+  private static int numCollisions = 0;
+
+  /**
+   * Returns the number of collisions that occurred during the most recent get or
+   * put operation.
+   */
+  public static int getNumCollisions() {
+    return numCollisions;
+  }
+  
+  class Colorfreq {
+	  private Color col;
+	  private long freq;
+	  public Colorfreq(Color col, long freq) {
+		  this.col = col;
+		  this.freq = freq;
+	  }
+	  public Color getColor() {
+		  return this.col;
+	  }
+	  public long getFreq() {
+		  return this.freq;
+	  }
+	  public String toString() {
+		  return "(" + this.col + ", " + this.freq + "), ";
+	  }
+  }
+
+  /**
+   * TODO
+   * 
+   * Constructs a color table with a starting capacity of initialCapacity. Keys in
+   * the color key space are truncated to bitsPerChannel bits. The collision resolution
+   * strategy is specified by passing either Constants.LINEAR or Constants.QUADRATIC for
+   * the collisionStrategy parameter. The rehashThrehold specifies the maximum tolerable load 
+   * factor before triggering a rehash.
+   * 
+   * @throws RuntimeException if initialCapacity is not in the range [1..Constants.MAX_CAPACITY]
+   * @throws RuntimeException if bitsPerChannel is not in the range [1..8]
+   * @throws RuntimeException if collisionStrategy is not one of Constants.LINEAR or Constants.QUADRATIC
+   * @throws RuntimeException if rehashThreshold is not in the range (0.0..1.0] for a
+   *                             linear strategy or (0.0..0.5) for a quadratic strategy
+   */
+  private int initialCapacity;
+  private int bitsPerChannel;
+  private int collisionStrategy;
+  private double rehashThreshold;
+  private Colorfreq[] colArr;
+  private int size;
+  public ColorTable(int initialCapacity, int bitsPerChannel, int collisionStrategy, double rehashThreshold) { 
+	  if (initialCapacity < 1 || initialCapacity > Constants.MAX_CAPACITY)
+		  throw new RuntimeException();
+	  
+	  if (bitsPerChannel < 1 || bitsPerChannel > 8)
+		  throw new RuntimeException();
+	  
+	  if (collisionStrategy != Constants.LINEAR && collisionStrategy != Constants.QUADRATIC)
+		  throw new RuntimeException();
+
+	  if (collisionStrategy == Constants.LINEAR) {
+		  if (rehashThreshold <= 0 || rehashThreshold > 1)
+			  throw new RuntimeException();
+	  }
+	  else {
+		  if (rehashThreshold <= 0 || rehashThreshold >= 0.5)
+			  throw new RuntimeException();
+	  }
+	  this.initialCapacity = initialCapacity;
+	  this.bitsPerChannel = bitsPerChannel;
+	  this.collisionStrategy = collisionStrategy;
+	  this.rehashThreshold = rehashThreshold;
+	  this.colArr = new Colorfreq[initialCapacity];
+	  this.size = size;
+  }
+  // Hash function for given color for map insertion
+  private int hash(Color c) {
+	  c = Util.colorToBits(c, this.bitsPerChannel);
+	  return Util.pack(c, this.bitsPerChannel) % this.initialCapacity;
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the number of bits per channel used by the colors in this table.
+   */
+  
+  public int getBitsPerChannel() {
+    return this.bitsPerChannel;
+  }
+  
+  public Colorfreq[] getArr() {
+	  return this.colArr;
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the frequency count associated with color. Note that colors not
+   * explicitly represented in the table are assumed to be present with a
+   * count of zero. Uses Util.pack() as the hash function.
+   */
+  public long get(Color color) {
+	  color = Util.colorToBits(color, this.bitsPerChannel);
+	  for (int i = 0; i < this.initialCapacity; i++) {
+		  if (this.colArr[i] != null) {
+			  if (this.colArr[i].getColor().equals(color)) {
+				  return this.colArr[i].getFreq();
+			  }
+		  }
+	  }
+    return 0;
+  }
+
+  /**
+   * TODO
+   * 
+   * Associates the count with the color in this table. Do nothing if count is less than
+   * or equal to zero. Uses Util.pack() as the hash function.
+   */
+  public void put(Color color, long count) {
+	  if (count > 0) {
+		  color = Util.colorToBits(color, this.bitsPerChannel);
+		  int i = hash(color);
+		  boolean sameColor = false;
+		  //System.out.println(i);
+		  Colorfreq col = new Colorfreq(color, count);
+		  if (this.collisionStrategy == Constants.LINEAR) {
+		  while (this.colArr[i] != null) {
+			  if (this.colArr[i].getColor().equals(color)) {
+				  sameColor = !sameColor;
+				  break;
+			  }
+			  i++;
+			  i %= this.initialCapacity;
+			  //System.out.println(i);
+		  }
+		  }
+		  else {
+			  int incrementor = 1;
+			  int temp = i;
+			  while (this.colArr[i] != null) {
+				  if (this.colArr[i].getColor().equals(color)) {
+					  sameColor = !sameColor;
+					  break;
+				  }
+				  i = temp + (incrementor * incrementor);
+				  i %= this.initialCapacity;
+				  incrementor++;
+				  //System.out.println(incrementor);
+			  }
+		  }
+		  this.colArr[i] = col;
+		  if (!sameColor)
+			  this.size++;
+		  while (this.getLoadFactor() > this.rehashThreshold) {
+			  rehash();
+		  }
+	  }
+  }
+
+  /**
+   * TODO
+   * 
+   * Increments the frequency count associated with color. Note that colors not
+   * explicitly represented in the table are assumed to be present with a
+   * count of zero.
+   */
+  public void increment(Color color) {
+	  color = Util.colorToBits(color, this.bitsPerChannel);
+	  if (this.get(color) == 0) {
+		  this.put(color, 1);
+	  }
+	  else {
+		  long getFreq = this.get(color) + 1;
+		  //System.out.println(getFreq);
+		  this.put(color, getFreq);
+	  }
+	  while (this.getLoadFactor() > this.rehashThreshold) {
+		  rehash();
+	  }
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the load factor for this table.
+   */
+  public double getLoadFactor() {
+    return (double) this.size / this.initialCapacity;
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the size of the internal array representing this table.
+   */
+  public int getCapacity() {
+    return this.initialCapacity;
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the number of key/value associations in this table.
+   */
+  public int getSize() {
+    return this.size;
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns true iff this table is empty.
+   */
+  public boolean isEmpty() {
+    return this.size == 0;
+  }
+
+  /**
+   * TODO
+   * 
+   * Increases the size of the array to the smallest prime greater than double the 
+   * current size that is of the form 4j + 3, and then moves all the key/value 
+   * associations into the new array. 
+   * 
+   * Hints: 
+   * -- Make use of Util.isPrime().
+   * -- Multiplying a positive integer n by 2 could result in a negative number,
+   *    corresponding to integer overflow. You should detect this possibility and
+   *    crop the new size to Constants.MAX_CAPACITY.
+   * 
+   * @throws RuntimeException if the table is already at maximum capacity.
+   */
+  private void rehash() {
+	  if (this.initialCapacity == Constants.MAX_CAPACITY) {
+		  throw new RuntimeException();
+	  }
+	  Colorfreq[] oldArr = this.colArr;
+	  int oldCapacity = this.initialCapacity;
+	  int newCapacity = oldCapacity * 2;
+	  if (newCapacity < 0) {
+		  newCapacity = Constants.MAX_CAPACITY;
+	  }
+	  else {
+		  while(true) {
+			  //System.out.println("Capacity: " + newCapacity);
+			  if (newCapacity % 4 == 3 && Util.isPrime(newCapacity)) {
+				  //System.out.println("sucess: " + newCapacity);
+				  break;
+			  }
+			  newCapacity++;
+		  }
+	  }
+	  this.initialCapacity = newCapacity;
+	  Colorfreq[] newArr = new Colorfreq[this.initialCapacity];
+	  this.colArr = newArr;
+	  this.size = 0;
+	  for (int i = 0; i < oldArr.length; i++) {
+		  if (oldArr[i] != null)
+		  this.put(oldArr[i].getColor(), oldArr[i].getFreq());
+	  }
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns an Iterator that marches through each color in the key color space and
+   * returns the sequence of frequency counts.
+   */
+
+  public Iterator iterator() {
+	ColorTable table = this;
+	//int size = table.getCapacity();
+    return new Iterator() {
+    	int i = 0;
+		@Override
+		public long next() {
+			long freq = table.getCountAt(i);
+			i++;
+			return freq;
+		}
+		@Override
+		public boolean hasNext() {
+			return table.colArr[i] != null;
+		} 	
+    };
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns a String representation of this table.
+   */
+  public String toString() {
+	  String s = "[";
+	  for (int i = 0; i < this.initialCapacity; i++) {
+		  if (this.colArr[i] == null) {
+			  s += "null, ";
+		  }
+		  else
+			  s += this.colArr[i];
+	  }
+    return s + "]";
+  }
+
+  /**
+   * TODO
+   * 
+   * Returns the count in the table at index i in the array representing the table.
+   * The sole purpose of this function is to aid in writing the unit tests.
+   */
+  public long getCountAt(int i) {
+	  if (this.colArr[i] != null)
+    return this.colArr[i].getFreq();
+	  else
+		  return 0;
+  }
+
+  /**
+   * Simple testing.
+   */
+  public static void main(String[] args) {
+    /*ColorTable table = new ColorTable(3, 6, Constants.QUADRATIC, .49);
+    int[] data = new int[] { 32960, 4293315, 99011, 296390 };
+    for (int i = 0; i < data.length; i++) 
+      table.increment(new Color(data[i]));
+    System.out.println("capacity: " + table.getCapacity()); // Expected: 7
+    System.out.println("size: " + table.getSize());         // Expected: 3
+    System.out.println(table.getLoadFactor());
+    /* The following automatically calls table.toString().
+       Notice that we only include non-zero counts in the String representation.
+       
+       Expected: [3:2096,2, 5:67632,1, 6:6257,1]
+       
+       This shows that there are 3 keys in the table. They are at positions 3, 5, and 6.
+       Their color codes are 2096, 67632, and 6257. The code 2096 was incremented twice.
+       You do not have to mimic this format exactly, but strive for something compact
+       and readable.
+       */
+	    /*ColorTable table = new ColorTable(13, 8, Constants.QUADRATIC, 0.49);
+	    // For a tableSize of 13, these keys all collide.
+	    Color c0 = new Color(0);
+	    Color c1 = new Color(13);
+	    Color c2 = new Color(2 * 13);
+	    Color c3 = new Color(3 * 13);
+	    Color c4 = new Color(4 * 13);
+	    Color c5 = new Color(5 * 13);
+	    Color c6 = new Color(6 * 13);
+	    Color c7 = new Color(7 * 13);
+	    table.put(c0, 1);
+	    table.put(c1, 2);
+	    table.put(c2, 3);
+	    System.out.println(table);
+	    //System.out.println(table.get(Color.RED));*/
+	  ColorTable table = new ColorTable(3, 6, Constants.LINEAR, 0.9);
+	  table.put(Color.BLACK, 5);
+	  table.put(Color.WHITE, 5);
+	    table.put(Color.RED, 5);
+	    //table.put(Color.BLUE, 5);
+	    table.put(Color.RED, 23);
+	    System.out.println(table);
+	    System.out.println(table.get(Color.RED));
+	    table = new ColorTable(13, 2, Constants.LINEAR, 0.49);
+	    for (int i = 0; i < 20 * 17; i += 17)
+	      table.put(new Color(i * i),  i);
+	    System.out.println(table);
+  }
+}
