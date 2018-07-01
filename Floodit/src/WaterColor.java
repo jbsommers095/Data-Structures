@@ -12,7 +12,9 @@ public enum WaterColor {
   RED(Color.RED),         // red
   CYAN(Color.CYAN),       // cyan
   PINK(Color.PINK),       // pink
-  YELLOW(Color.YELLOW);   // yellow
+  YELLOW(Color.YELLOW),   // yellow
+  GREEN(Color.GREEN),	  // green
+  MAGENTA(Color.MAGENTA); // magenta
 
   private Color color;
   private static Random gen = new Random();

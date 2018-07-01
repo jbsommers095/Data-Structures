@@ -173,10 +173,10 @@ public class Board {
 	  Set<Coord> temp2 = new HashSet<Coord>();
 	  Set<Coord> temp3 = new HashSet<Coord>();
 	  int res = this.inside.size();
-	  WaterColor bestColor = WaterColor.BLUE;
 	  Map<Coord, Tile> inSuggest = new HashMap<Coord, Tile>();
 	  Map<Coord, Tile> outSuggest = new HashMap<Coord, Tile>();
 	  WaterColor[] colors = WaterColor.values();
+	  WaterColor bestColor = colors[0];
 	  for (WaterColor color : colors) {
 		  inSuggest.putAll(this.inside);
 		  outSuggest.putAll(this.outside);
