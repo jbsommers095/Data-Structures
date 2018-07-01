@@ -1,8 +1,10 @@
 import static org.junit.Assert.*;
 
+
 import java.util.ArrayList;
 
 import org.junit.Test;
+import java.util.*;
 
 /**
  * JUnit tests for all TODO methods.
@@ -10,7 +12,7 @@ import org.junit.Test;
 
 public class Testing {
 	  
-	  // Test of Coord.onBoard()
+	  // Testing to make sure that coordinates are on the board
 	  @Test
 	  public void testOnBoard() {
 		Coord coord1 = new Coord(3, 4);
@@ -22,15 +24,15 @@ public class Testing {
 	    assertFalse(corner.onBoard(0));
 	  }
 
-	  // Test of Coord.neighbors()
+	  // Testing for neighbors function
 	  @Test
 	  public void neighbors() {
 		  for (int i = 0; i < 100; i++) {
 			  for (int j = 0; j < 100; j++) {
 				  Coord c = new Coord(i, j);
 				  Coord[] neighs = {c.up(), c.down(), c.left(), c.right()};
-				  ArrayList<Coord> nbors1 = c.neighbors(50);
-				  ArrayList<Coord> nbors2 = new ArrayList<Coord>();
+				  List<Coord> nbors1 = c.neighbors(50);
+				  List<Coord> nbors2 = new ArrayList<Coord>();
 				  if (c.onBoard(50)) {
 				  for (int k = 0; k < neighs.length; k++) {
 					  if (neighs[k].onBoard(50)) {
@@ -46,7 +48,7 @@ public class Testing {
 		  }
 	  }
 	  
-	  // test of Coord.hashCode()
+	  // testing for hash codes of Coords
 	  @Test
 	  public void hashTest() {
 		  for (int i = 0; i < 100; i++) {
@@ -56,21 +58,23 @@ public class Testing {
 			  }
 		  }
 	  }
+	  // Testing for fully flooded boards
 	  @Test
 	  public void singleColorBoard() {
 		  Board board = new Board(10);
-		  board.flood2(WaterColor.BLUE);
+		  board.flood2(WaterColor.BLUE); // Keep in mind flood2 should fill entire board with single color
+		  assertTrue(board.fullyFlooded());
 		  assertEquals(WaterColor.BLUE, board.suggest());
 		  board.flood2(WaterColor.CYAN);
 		// Since board is already filled with a specific color, 
 		  //board.suggest() should not change its result 
-		  //because you can't click on another colored tile from there
+		  //because board.inside is empty
 		  assertEquals(WaterColor.BLUE, board.suggest());
 		  board.flood2(WaterColor.RED);
 		  assertEquals(WaterColor.BLUE, board.suggest());
 		  assertTrue(board.fullyFlooded());
 	  }
-	  
+	  // More fully flooded board testing
 	  @Test
 	  public void fullBoard() {
 		  Board board = new Board(10);
@@ -81,46 +85,77 @@ public class Testing {
 		  assertTrue(board.fullyFlooded()); 
 		  // This board should print "You win" on GUI assuming it was solved within needed steps
 	  }
+	  // Testing for suggest on a small board
 	  @Test
-	  public void testSuggest() {
-		  Board board = new Board(5);
-		  for (int i = 0; i < 5; i++) {
-			  for (int j = 0; j < 5; j++) {
-				  switch(i) {
+	  public void miniSuggest() {
+		  WaterColor[][] colors = {{WaterColor.BLUE, WaterColor.RED}, {WaterColor.RED, WaterColor.RED}};
+		  Board board = new Board(2, colors);
+		  assertEquals(board.suggest(), WaterColor.RED);
+		  board.flood(board.suggest());
+		  assertTrue(board.fullyFlooded());
+	  }
+	  // Just another test board for suggest
+	  @Test
+	  public void miniSuggest2() {
+		  WaterColor[][] colors = {{WaterColor.BLUE, WaterColor.YELLOW, WaterColor.CYAN}, {WaterColor.BLUE, WaterColor.BLUE, WaterColor.YELLOW}, {WaterColor.BLUE, WaterColor.PINK, WaterColor.BLUE}};
+		  Board board = new Board(3, colors);
+		  assertEquals(WaterColor.YELLOW, board.suggest());
+		  board.flood(board.get(Coord.ORIGIN).getColor()); // flooding corner should not change board contents
+		  assertEquals(WaterColor.YELLOW, board.suggest());
+		  WaterColor[][] colors2 = {{WaterColor.PINK, WaterColor.BLUE, WaterColor.RED}, {WaterColor.BLUE, WaterColor.CYAN, WaterColor.RED}, {WaterColor.BLUE, WaterColor.CYAN, WaterColor.RED}};
+		  Board board2 = new Board(3, colors2);
+		  assertEquals(WaterColor.BLUE, board2.suggest());
+	  }
+	  // Testing for suggest on a very large board
+	  @Test
+	  public void testSuggestLarge() {
+		  WaterColor[][] custom = new WaterColor[25][25];
+		  for (int i = 0; i < custom.length; i++) {
+			  for (int j = 0; j < custom[i].length; j++) {
+				  int temp = i % 5;
+				  switch(temp) {
 				  case 0:
-					  board.get(new Coord(i, j)).setColor(WaterColor.YELLOW);
+					  custom[i][j] = WaterColor.YELLOW;
 					  break;
 				  case 1:
-					  board.get(new Coord(i, j)).setColor(WaterColor.CYAN);
+					  custom[i][j] = WaterColor.CYAN;
 					  break;
 				  case 2:
-					  board.get(new Coord(i, j)).setColor(WaterColor.RED);
+					  custom[i][j] = WaterColor.RED;
 					  break;
 				  case 3:
-					  board.get(new Coord(i, j)).setColor(WaterColor.PINK);
+					  custom[i][j] = WaterColor.PINK;
 					  break;
 				  case 4:
-					  board.get(new Coord(i, j)).setColor(WaterColor.BLUE);
+					  custom[i][j] = WaterColor.BLUE;
 					  break;
 				  }
-				  System.out.print(board.get(new Coord(i, j)).getColor() + ", ");
 			  }
-			  System.out.println();
 		  }
-		  System.out.println();
-		  //assertEquals(WaterColor.CYAN, board.suggest());
-		  board.flood(board.suggest());
-		  //assertEquals(WaterColor.RED, board.suggest());
-		  board.flood(board.suggest());
-		  //assertEquals(WaterColor.CYAN, board.suggest());
-		  board.flood(board.suggest());
-		  //assertEquals(WaterColor.BLUE, board.suggest());
-		  board.flood(board.suggest());
-		  for (int i = 0; i < 5; i++) {
-			  for (int j = 0; j < 5; j++) {
-				  System.out.print(board.get(new Coord(i, j)).getColor() + ", ");
+		  Board board = new Board(custom.length, custom);
+		  int numFloods = 0;
+		  while (!board.fullyFlooded()) {
+			  int flood = numFloods % 5;
+			  switch(flood) {
+			  case 0:
+			  assertEquals(WaterColor.CYAN, board.suggest());
+			  break;
+			  case 1:
+			  assertEquals(WaterColor.RED, board.suggest());
+			  break;
+			  case 2:
+			  assertEquals(WaterColor.PINK, board.suggest());
+			  break;
+			  case 3:
+			  assertEquals(WaterColor.BLUE, board.suggest());
+			  break;
+			  default:
+				  assertEquals(WaterColor.YELLOW, board.suggest());
+				  break;
 			  }
-			  System.out.println();
+		  board.flood(board.suggest());
+		  numFloods++;
 		  }
+		  assertTrue(numFloods == 24 && board.get(Coord.ORIGIN).getColor().equals(WaterColor.BLUE));
 		  }
 }

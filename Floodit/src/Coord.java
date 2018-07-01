@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+
 import java.util.List;
 
 /**
@@ -82,8 +83,8 @@ public class Coord implements Comparable<Coord> {
    * Returns a list of the immediate board coordinates of this Coord's north,
    * south, east, and west neighbors.
    */
-  public ArrayList<Coord> neighbors(int size) {
-    ArrayList<Coord> list = new ArrayList<Coord>();
+  public List<Coord> neighbors(int size) {
+    List<Coord> list = new ArrayList<Coord>();
     if (this.onBoard(size)) {
     	if (this.up().onBoard(size)) {
     		list.add(this.up());
