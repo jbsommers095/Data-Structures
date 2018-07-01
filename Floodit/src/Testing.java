@@ -75,7 +75,7 @@ public class Testing {
 		  assertTrue(board.fullyFlooded());
 	  }
 	  // More fully flooded board testing
-	  //@Test
+	  @Test
 	  public void fullBoard() {
 		  Board board = new Board(10);
 		  while(!board.fullyFlooded()) {
@@ -86,7 +86,7 @@ public class Testing {
 		  // This board should print "You win" on GUI assuming it was solved within needed steps
 	  }
 	  // Testing for suggest on a small board
-	  //@Test
+	  @Test
 	  public void miniSuggest() {
 		  WaterColor[][] colors = {{WaterColor.BLUE, WaterColor.RED}, {WaterColor.RED, WaterColor.RED}};
 		  Board board = new Board(2, colors);
@@ -95,7 +95,7 @@ public class Testing {
 		  assertTrue(board.fullyFlooded());
 	  }
 	  // Just another test board for suggest
-	  //@Test
+	  @Test
 	  public void miniSuggest2() {
 		  WaterColor[][] colors = {{WaterColor.BLUE, WaterColor.YELLOW, WaterColor.CYAN}, {WaterColor.BLUE, WaterColor.BLUE, WaterColor.YELLOW}, {WaterColor.BLUE, WaterColor.PINK, WaterColor.BLUE}};
 		  Board board = new Board(3, colors);
